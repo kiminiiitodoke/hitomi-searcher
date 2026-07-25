@@ -276,6 +276,7 @@
     .a-tag.t-male { color: #4a6fa5; background: #EAF1FC; border-color: #cddff5; }
     .a-tag.t-female { color: #c0607a; background: #FCEAF1; border-color: #f3cdda; }
     .a-tag.t-love { color: #d17ba0; background: #FCEFF5; border-color: #f5d5e5; }
+    .a-tag.t-green { color: #7fa06e; background: #F0F7E9; border-color: #d9ead0; }
     .archive-empty {
       font-size: 13px;
       color: #b3c0d0;
@@ -480,6 +481,7 @@
       if (tag === '단독 남성') return 't-male';
       if (tag === '단독 여성') return 't-female';
       if (tag === '순애') return 't-love';
+      if (tag === '처녀상실' || tag === '동정졸업') return 't-green';
       return '';
     }
 
