@@ -112,6 +112,49 @@
       margin-top: 10px;
       line-height: 1.5;
     }
+    .recent {
+      margin-top: 28px;
+    }
+    .recent-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .recent-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #7a8ba0;
+    }
+    .recent-clear {
+      font-size: 12px;
+      color: #b3c0d0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 4px;
+    }
+    .recent-clear:hover {
+      color: #7a8ba0;
+    }
+    .recent-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .recent-chip {
+      padding: 7px 12px;
+      font-size: 14px;
+      color: #4a6fa5;
+      background: #EAF1FC;
+      border: 1px solid #d5e2f2;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .recent-chip:hover {
+      background: #dfeafb;
+    }
   </style>
 </head>
 <body>
@@ -123,25 +166,88 @@
         type="text"
         id="numberInput"
         inputmode="numeric"
-        placeholder="품번을 입력해주세요"
+        placeholder="번호 입력"
         autocomplete="off"
       >
       <button id="generateBtn">확인</button>
     </div>
 
-    <p class="hint">품번을 입력해주세요 <span style="color:#b3c0d0;">(숫자만 입력 가능해요)</span></p>
+    <p class="hint">품번을 입력해주세요 <span style="color:#b3c0d0;">(숫자만 입력 가능)</span></p>
 
     <div id="result"></div>
+
+    <div class="recent" id="recent" style="display:none;">
+      <div class="recent-head">
+        <span class="recent-title">최근 검색</span>
+        <button class="recent-clear" id="recentClear">전체 삭제</button>
+      </div>
+      <div class="recent-list" id="recentList"></div>
+    </div>
   </div>
 
   <script>
     const input = document.getElementById('numberInput');
     const btn = document.getElementById('generateBtn');
     const result = document.getElementById('result');
+    const recent = document.getElementById('recent');
+    const recentList = document.getElementById('recentList');
+    const recentClear = document.getElementById('recentClear');
+
+    const STORAGE_KEY = 'hitomi_recent';
+    const MAX_RECENT = 10;
 
     // 숫자만 입력되도록 필터
     input.addEventListener('input', function () {
       input.value = input.value.replace(/[^0-9]/g, '');
+    });
+
+    function loadRecent() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveRecent(list) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      } catch (e) {}
+    }
+
+    function addRecent(num) {
+      let list = loadRecent();
+      list = list.filter(function (n) { return n !== num; }); // 중복 제거
+      list.unshift(num); // 맨 앞에 추가
+      list = list.slice(0, MAX_RECENT); // 최대 5개
+      saveRecent(list);
+      renderRecent();
+    }
+
+    function renderRecent() {
+      const list = loadRecent();
+      if (list.length === 0) {
+        recent.style.display = 'none';
+        return;
+      }
+      recent.style.display = 'block';
+      recentList.innerHTML = '';
+      list.forEach(function (num) {
+        const chip = document.createElement('button');
+        chip.className = 'recent-chip';
+        chip.textContent = num;
+        chip.addEventListener('click', function () {
+          input.value = num;
+          generate();
+        });
+        recentList.appendChild(chip);
+      });
+    }
+
+    recentClear.addEventListener('click', function () {
+      saveRecent([]);
+      renderRecent();
     });
 
     function generate() {
@@ -156,7 +262,9 @@
           '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>' +
           '<button id="copyBtn">복사</button>' +
         '</div>' +
-        '<p class="copy-guide">링크를 클릭하면 바로 이동, 복사도 가능해요.</p>';
+        '<p class="copy-guide">링크를 클릭하거나, 복사 버튼을 누른 뒤 브라우저에 붙여넣으세요.</p>';
+
+      addRecent(num);
 
       const copyBtn = document.getElementById('copyBtn');
       copyBtn.addEventListener('click', function () {
@@ -181,6 +289,9 @@
     input.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') generate();
     });
+
+    // 페이지 로드 시 최근 검색 표시
+    renderRecent();
   </script>
 </body>
 </html>
