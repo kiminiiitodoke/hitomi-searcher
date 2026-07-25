@@ -12,10 +12,10 @@
       background: #f7fafd;
       color: #3d4149;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding: 24px 16px;
+      padding: 15vh 16px 40px;
     }
     .container {
       width: 100%;
@@ -224,6 +224,45 @@
       color: #b3c0d0;
       padding: 8px 0;
     }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 18px;
+    }
+    .page-btn {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #7a8ba0;
+      background: #ffffff;
+      border: 1px solid #e3e9f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .page-btn:hover {
+      background: #f7fafd;
+      border-color: #d5e2f2;
+    }
+    .page-btn.active {
+      color: #fff;
+      background: #6E9FE0;
+      border-color: #6E9FE0;
+    }
+    .page-btn:disabled {
+      color: #cdd6e0;
+      cursor: default;
+      background: #fafbfc;
+    }
+    .page-btn:disabled:hover {
+      background: #fafbfc;
+      border-color: #e3e9f0;
+    }
   </style>
 </head>
 <body>
@@ -254,11 +293,12 @@
     </div>
 
     <div class="archive">
-      <div class="archive-title">추천작 모음집</div>
-      <div class="archive-sub">제목을 누르면 해당 작품으로 이동해요</div>
+      <div class="archive-title">아카이브 목록</div>
+      <div class="archive-sub">제목을 누르면 해당 작품으로 이동해요.</div>
       <div class="archive-list" id="archiveList">
         <p class="archive-empty">목록을 불러오는 중...</p>
       </div>
+      <div class="pagination" id="pagination"></div>
     </div>
   </div>
 
@@ -381,6 +421,92 @@
       return '';
     }
 
+    const pagination = document.getElementById('pagination');
+    const PER_PAGE = 5;
+    let archiveData = [];
+    let currentPage = 1;
+
+    function renderArchivePage(page) {
+      currentPage = page;
+      const total = archiveData.length;
+      const totalPages = Math.ceil(total / PER_PAGE);
+      const start = (page - 1) * PER_PAGE;
+      const pageItems = archiveData.slice(start, start + PER_PAGE);
+
+      archiveList.innerHTML = '';
+      pageItems.forEach(function (item) {
+        if (!item || !item.num) return;
+        const a = document.createElement('a');
+        a.className = 'archive-item';
+        a.href = 'https://hitomi.la/reader/' + item.num + '.html#1';
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'a-title';
+        titleDiv.textContent = item.title || ('작품 ' + item.num);
+
+        const numDiv = document.createElement('div');
+        numDiv.className = 'a-num';
+        numDiv.textContent = '품번 ' + item.num;
+
+        a.appendChild(titleDiv);
+        a.appendChild(numDiv);
+
+        if (Array.isArray(item.tags) && item.tags.length) {
+          const tagWrap = document.createElement('div');
+          tagWrap.className = 'a-tags';
+          item.tags.forEach(function (tag) {
+            const span = document.createElement('span');
+            span.className = 'a-tag ' + tagClass(tag);
+            span.textContent = tag;
+            tagWrap.appendChild(span);
+          });
+          a.appendChild(tagWrap);
+        }
+        archiveList.appendChild(a);
+      });
+
+      renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+      pagination.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      function makeBtn(label, page, opts) {
+        opts = opts || {};
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (opts.active ? ' active' : '');
+        btn.textContent = label;
+        if (opts.disabled) {
+          btn.disabled = true;
+        } else {
+          btn.addEventListener('click', function () {
+            renderArchivePage(page);
+            // 목록 상단으로 부드럽게 스크롤
+            document.querySelector('.archive').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
+        return btn;
+      }
+
+      // 이전
+      pagination.appendChild(makeBtn('‹', currentPage - 1, { disabled: currentPage === 1 }));
+
+      // 페이지 번호 (최대 5개씩 윈도우로 보여줌)
+      let startP = Math.max(1, currentPage - 2);
+      let endP = Math.min(totalPages, startP + 4);
+      startP = Math.max(1, endP - 4);
+
+      for (let p = startP; p <= endP; p++) {
+        pagination.appendChild(makeBtn(String(p), p, { active: p === currentPage }));
+      }
+
+      // 다음
+      pagination.appendChild(makeBtn('›', currentPage + 1, { disabled: currentPage === totalPages }));
+    }
+
     fetch('list.json?t=' + Date.now())
       .then(function (res) {
         if (!res.ok) throw new Error('load failed');
@@ -389,45 +515,15 @@
       .then(function (data) {
         if (!Array.isArray(data) || data.length === 0) {
           archiveList.innerHTML = '<p class="archive-empty">아직 등록된 항목이 없어요.</p>';
+          pagination.innerHTML = '';
           return;
         }
-        archiveList.innerHTML = '';
-        data.forEach(function (item) {
-          if (!item || !item.num) return;
-          const a = document.createElement('a');
-          a.className = 'archive-item';
-          a.href = 'https://hitomi.la/reader/' + item.num + '.html#1';
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-
-          const titleDiv = document.createElement('div');
-          titleDiv.className = 'a-title';
-          titleDiv.textContent = item.title || ('작품 ' + item.num);
-
-          const numDiv = document.createElement('div');
-          numDiv.className = 'a-num';
-          numDiv.textContent = '품번 ' + item.num;
-
-          a.appendChild(titleDiv);
-          a.appendChild(numDiv);
-
-          if (Array.isArray(item.tags) && item.tags.length) {
-            const tagWrap = document.createElement('div');
-            tagWrap.className = 'a-tags';
-            item.tags.forEach(function (tag) {
-              const span = document.createElement('span');
-              span.className = 'a-tag ' + tagClass(tag);
-              span.textContent = tag;
-              tagWrap.appendChild(span);
-            });
-            a.appendChild(tagWrap);
-          }
-
-          archiveList.appendChild(a);
-        });
+        archiveData = data.filter(function (it) { return it && it.num; });
+        renderArchivePage(1);
       })
       .catch(function () {
         archiveList.innerHTML = '<p class="archive-empty">목록을 불러오지 못했어요.</p>';
+        pagination.innerHTML = '';
       });
   </script>
 </body>
