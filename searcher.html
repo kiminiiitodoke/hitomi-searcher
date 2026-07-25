@@ -155,6 +155,56 @@
     .recent-chip:hover {
       background: #dfeafb;
     }
+    .archive {
+      margin-top: 40px;
+      padding-top: 28px;
+      border-top: 1px solid #e3e9f0;
+    }
+    .archive-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #4a6fa5;
+      margin-bottom: 4px;
+    }
+    .archive-sub {
+      font-size: 12px;
+      color: #93a3b8;
+      margin-bottom: 16px;
+    }
+    .archive-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .archive-item {
+      display: block;
+      padding: 13px 15px;
+      background: #ffffff;
+      border: 1px solid #e3e9f0;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .archive-item:hover {
+      background: #f7fafd;
+      border-color: #d5e2f2;
+    }
+    .archive-item .a-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #3d4149;
+      margin-bottom: 2px;
+      word-break: break-all;
+    }
+    .archive-item .a-num {
+      font-size: 12px;
+      color: #93a3b8;
+    }
+    .archive-empty {
+      font-size: 13px;
+      color: #b3c0d0;
+      padding: 8px 0;
+    }
   </style>
 </head>
 <body>
@@ -182,6 +232,14 @@
         <button class="recent-clear" id="recentClear">전체 삭제</button>
       </div>
       <div class="recent-list" id="recentList"></div>
+    </div>
+
+    <div class="archive">
+      <div class="archive-title">추천 작품</div>
+      <div class="archive-sub">제목을 누르면 해당 작품으로 이동해요.</div>
+      <div class="archive-list" id="archiveList">
+        <p class="archive-empty">목록을 불러오는 중...</p>
+      </div>
     </div>
   </div>
 
@@ -292,6 +350,39 @@
 
     // 페이지 로드 시 최근 검색 표시
     renderRecent();
+
+    // 아카이브 목록 불러오기 (list.json)
+    const archiveList = document.getElementById('archiveList');
+
+    fetch('list.json?t=' + Date.now())
+      .then(function (res) {
+        if (!res.ok) throw new Error('load failed');
+        return res.json();
+      })
+      .then(function (data) {
+        if (!Array.isArray(data) || data.length === 0) {
+          archiveList.innerHTML = '<p class="archive-empty">아직 등록된 항목이 없어요.</p>';
+          return;
+        }
+        archiveList.innerHTML = '';
+        data.forEach(function (item) {
+          if (!item || !item.num) return;
+          const a = document.createElement('a');
+          a.className = 'archive-item';
+          a.href = 'https://hitomi.la/reader/' + item.num + '.html#1';
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.innerHTML =
+            '<div class="a-title"></div>' +
+            '<div class="a-num"></div>';
+          a.querySelector('.a-title').textContent = item.title || ('작품 ' + item.num);
+          a.querySelector('.a-num').textContent = '품번 ' + item.num;
+          archiveList.appendChild(a);
+        });
+      })
+      .catch(function () {
+        archiveList.innerHTML = '<p class="archive-empty">목록을 불러오지 못했어요.</p>';
+      });
   </script>
 </body>
 </html>
