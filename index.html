@@ -112,6 +112,63 @@
       margin-top: 10px;
       line-height: 1.5;
     }
+    .random-area {
+      margin-top: 20px;
+    }
+    .random-btn {
+      width: 100%;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #7fa06e;
+      background: #F0F7E9;
+      border: 1px solid #d9ead0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .random-btn:hover {
+      background: #e7f1dc;
+    }
+    #randomResult {
+      margin-top: 12px;
+    }
+    .random-card {
+      display: block;
+      padding: 15px;
+      background: #ffffff;
+      border: 1px solid #d9ead0;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .random-card:hover {
+      background: #fafdf7;
+      border-color: #c8e0b8;
+    }
+    .random-card .r-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9fbf85;
+      margin-bottom: 5px;
+    }
+    .random-card .r-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #3d4149;
+      word-break: break-all;
+    }
+    .random-card .r-num {
+      font-size: 12px;
+      color: #93a3b8;
+      margin-top: 2px;
+    }
+    .random-card .r-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+    }
     .recent {
       margin-top: 28px;
     }
@@ -284,6 +341,11 @@
 
     <div id="result"></div>
 
+    <div class="random-area">
+      <button id="randomBtn" class="random-btn">🎲 랜덤 작품 추천</button>
+      <div id="randomResult"></div>
+    </div>
+
     <div class="recent" id="recent" style="display:none;">
       <div class="recent-head">
         <span class="recent-title">최근 검색</span>
@@ -293,7 +355,7 @@
     </div>
 
     <div class="archive">
-      <div class="archive-title">추천 작품</div>
+      <div class="archive-title">아카이브 목록</div>
       <div class="archive-sub">제목을 누르면 해당 작품으로 이동해요.</div>
       <div class="archive-list" id="archiveList">
         <p class="archive-empty">목록을 불러오는 중...</p>
@@ -410,7 +472,7 @@
     // 페이지 로드 시 최근 검색 표시
     renderRecent();
 
-    // 추천 작품 불러오기 (list.json)
+    // 아카이브 목록 불러오기 (list.json)
     const archiveList = document.getElementById('archiveList');
 
     // 태그 색상 규칙
@@ -525,6 +587,66 @@
         archiveList.innerHTML = '<p class="archive-empty">목록을 불러오지 못했어요.</p>';
         pagination.innerHTML = '';
       });
+
+    // 랜덤 작품 추천
+    const randomBtn = document.getElementById('randomBtn');
+    const randomResult = document.getElementById('randomResult');
+    let lastRandomNum = null;
+
+    randomBtn.addEventListener('click', function () {
+      if (!archiveData || archiveData.length === 0) {
+        randomResult.innerHTML = '<p class="archive-empty">아직 추천할 작품이 없어요.</p>';
+        return;
+      }
+
+      // 직전에 뽑은 것과 다른 걸 뽑기 (항목이 2개 이상일 때)
+      let pick;
+      if (archiveData.length === 1) {
+        pick = archiveData[0];
+      } else {
+        do {
+          pick = archiveData[Math.floor(Math.random() * archiveData.length)];
+        } while (pick.num === lastRandomNum);
+      }
+      lastRandomNum = pick.num;
+
+      const a = document.createElement('a');
+      a.className = 'random-card';
+      a.href = 'https://hitomi.la/reader/' + pick.num + '.html#1';
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+
+      const label = document.createElement('div');
+      label.className = 'r-label';
+      label.textContent = '오늘의 추천';
+
+      const title = document.createElement('div');
+      title.className = 'r-title';
+      title.textContent = pick.title || ('작품 ' + pick.num);
+
+      const num = document.createElement('div');
+      num.className = 'r-num';
+      num.textContent = '품번 ' + pick.num;
+
+      a.appendChild(label);
+      a.appendChild(title);
+      a.appendChild(num);
+
+      if (Array.isArray(pick.tags) && pick.tags.length) {
+        const tagWrap = document.createElement('div');
+        tagWrap.className = 'r-tags';
+        pick.tags.forEach(function (tag) {
+          const span = document.createElement('span');
+          span.className = 'a-tag ' + tagClass(tag);
+          span.textContent = tag;
+          tagWrap.appendChild(span);
+        });
+        a.appendChild(tagWrap);
+      }
+
+      randomResult.innerHTML = '';
+      randomResult.appendChild(a);
+    });
   </script>
 </body>
 </html>
