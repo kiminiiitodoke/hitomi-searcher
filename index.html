@@ -228,6 +228,49 @@
       color: #93a3b8;
       margin-bottom: 16px;
     }
+    .archive-search {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    #archiveSearch {
+      width: 100%;
+      padding: 11px 38px 11px 14px;
+      font-size: 15px;
+      background: #ffffff;
+      color: #3d4149;
+      border: 1px solid #d5e2f2;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #archiveSearch:focus {
+      border-color: #6E9FE0;
+    }
+    #archiveSearchClear {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: #93a3b8;
+      background: #eef2f7;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    #archiveSearchClear:hover {
+      background: #e0e6ee;
+      color: #5a6572;
+    }
+    #archiveSearch:not(:placeholder-shown) + #archiveSearchClear {
+      display: flex;
+    }
     .archive-list {
       display: flex;
       flex-direction: column;
@@ -358,6 +401,15 @@
     <div class="archive">
       <div class="archive-title">아카이브 목록</div>
       <div class="archive-sub">제목을 누르면 해당 작품으로 이동해요.</div>
+      <div class="archive-search">
+        <input
+          type="text"
+          id="archiveSearch"
+          placeholder="번호 또는 제목 검색"
+          autocomplete="off"
+        >
+        <button id="archiveSearchClear" type="button" aria-label="검색어 지우기">✕</button>
+      </div>
       <div class="archive-list" id="archiveList">
         <p class="archive-empty">목록을 불러오는 중...</p>
       </div>
@@ -486,18 +538,28 @@
     }
 
     const pagination = document.getElementById('pagination');
+    const archiveSearch = document.getElementById('archiveSearch');
+    const archiveSearchClear = document.getElementById('archiveSearchClear');
     const PER_PAGE = 5;
     let archiveData = [];
+    let filteredData = [];
     let currentPage = 1;
 
     function renderArchivePage(page) {
       currentPage = page;
-      const total = archiveData.length;
+      const total = filteredData.length;
       const totalPages = Math.ceil(total / PER_PAGE);
       const start = (page - 1) * PER_PAGE;
-      const pageItems = archiveData.slice(start, start + PER_PAGE);
+      const pageItems = filteredData.slice(start, start + PER_PAGE);
 
       archiveList.innerHTML = '';
+
+      if (total === 0) {
+        archiveList.innerHTML = '<p class="archive-empty">검색 결과가 없어요.</p>';
+        renderPagination(0);
+        return;
+      }
+
       pageItems.forEach(function (item) {
         if (!item || !item.num) return;
         const a = document.createElement('a');
@@ -583,12 +645,35 @@
           return;
         }
         archiveData = data.filter(function (it) { return it && it.num; });
+        filteredData = archiveData;
         renderArchivePage(1);
       })
       .catch(function () {
         archiveList.innerHTML = '<p class="archive-empty">목록을 불러오지 못했어요.</p>';
         pagination.innerHTML = '';
       });
+
+    // 아카이브 검색 (번호 또는 제목)
+    function applyArchiveSearch() {
+      const q = archiveSearch.value.trim().toLowerCase();
+      if (!q) {
+        filteredData = archiveData;
+      } else {
+        filteredData = archiveData.filter(function (item) {
+          const num = String(item.num).toLowerCase();
+          const title = (item.title || '').toLowerCase();
+          return num.indexOf(q) !== -1 || title.indexOf(q) !== -1;
+        });
+      }
+      renderArchivePage(1);
+    }
+
+    archiveSearch.addEventListener('input', applyArchiveSearch);
+    archiveSearchClear.addEventListener('click', function () {
+      archiveSearch.value = '';
+      applyArchiveSearch();
+      archiveSearch.focus();
+    });
 
     // 랜덤 작품 추천
     const randomBtn = document.getElementById('randomBtn');
