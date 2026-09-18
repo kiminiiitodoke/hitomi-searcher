@@ -1,0 +1,96 @@
+{
+  "palette": {
+    "gray": {
+      "name": "기본",
+      "fg": "#7a8ba0",
+      "bg": "#f4f6f9",
+      "bd": "#e3e9f0"
+    },
+    "blue": {
+      "name": "블루",
+      "fg": "#4a6fa5",
+      "bg": "#EAF1FC",
+      "bd": "#cddff5"
+    },
+    "sky": {
+      "name": "스카이",
+      "fg": "#4f8fb8",
+      "bg": "#E8F3FA",
+      "bd": "#cde3f1"
+    },
+    "teal": {
+      "name": "틸",
+      "fg": "#4f9a9a",
+      "bg": "#EAF7F7",
+      "bd": "#cfe9e9"
+    },
+    "mint": {
+      "name": "민트",
+      "fg": "#3d9470",
+      "bg": "#E9F7F0",
+      "bd": "#cceadd"
+    },
+    "green": {
+      "name": "그린",
+      "fg": "#7fa06e",
+      "bg": "#F0F7E9",
+      "bd": "#d9ead0"
+    },
+    "amber": {
+      "name": "앰버",
+      "fg": "#b8812f",
+      "bg": "#FCF1E2",
+      "bd": "#f0dcc0"
+    },
+    "coral": {
+      "name": "코랄",
+      "fg": "#c0704a",
+      "bg": "#FCEFE6",
+      "bd": "#f2d6c4"
+    },
+    "rose": {
+      "name": "로즈",
+      "fg": "#c0607a",
+      "bg": "#FCEAF1",
+      "bd": "#f3cdda"
+    },
+    "pink": {
+      "name": "핑크",
+      "fg": "#d17ba0",
+      "bg": "#FCEFF5",
+      "bd": "#f5d5e5"
+    },
+    "lavender": {
+      "name": "라벤더",
+      "fg": "#8a6cbf",
+      "bg": "#F3EEFB",
+      "bd": "#e0d5f3"
+    },
+    "violet": {
+      "name": "바이올렛",
+      "fg": "#7a6fc0",
+      "bg": "#EFEDFB",
+      "bd": "#d9d5f3"
+    },
+    "red": {
+      "name": "레드",
+      "fg": "#d63a3a",
+      "bg": "#FDECEC",
+      "bd": "#f5c3c3"
+    },
+    "hotred": {
+      "name": "새빨강",
+      "fg": "#ffffff",
+      "bg": "#F01E23",
+      "bd": "#F01E23"
+    }
+  },
+  "tags": {
+    "단독 남성": "blue",
+    "단독 여성": "rose",
+    "순애": "pink",
+    "처녀상실": "green",
+    "동정졸업": "green",
+    "근친상간": "hotred"
+  }
+}
